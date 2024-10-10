@@ -1,0 +1,8 @@
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">yourdomain.com</domain>
+        <pin-set expiration="2025-01-01">
+            <pin digest="SHA-256">BASE64_ENCODED_CERTIFICATE</pin>
+        </pin-set>
+    </domain-config>
+</network-security-config>

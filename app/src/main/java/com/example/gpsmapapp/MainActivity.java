@@ -11,6 +11,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
@@ -18,8 +20,6 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -33,25 +33,29 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
+        // Inicializa el MapView y configura el callback para el mapa
         mapView = findViewById(R.id.mapView);
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
 
+        // Inicializa el cliente para obtener la ubicación actual
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
+        // Verifica permisos de ubicación
         checkLocationPermission();
     }
-    // Verifica si se tienen permisos de ubicación
+
+    // Verifica si los permisos de ubicación están concedidos
     private void checkLocationPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_REQUEST_CODE);
         } else {
-            getCurrentLocation();
+            getCurrentLocation(); // Obtiene la ubicación si ya tiene permiso
         }
     }
+
     // Obtiene la ubicación actual del usuario
     private void getCurrentLocation() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -64,17 +68,20 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     @Override
                     public void onSuccess(Location location) {
                         if (location != null) {
+                            // Crea una posición con las coordenadas de ubicación actual
                             LatLng currentLatLng = new LatLng(location.getLatitude(), location.getLongitude());
                             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15));
-                            mMap.addMarker(new MarkerOptions().position(currentLatLng).title("Current Location"));
+                            mMap.addMarker(new MarkerOptions().position(currentLatLng).title("Ubicación Actual"));
                         }
                     }
                 });
     }
-    // Callback que se llama cuando el mapa está listo para ser utilizado
+
+    // Callback que se llama cuando el mapa está listo
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
         mMap = googleMap;
+        // Habilita la capa de ubicación en el mapa si el permiso ha sido concedido
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -82,6 +89,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         mMap.setMyLocationEnabled(true);
     }
+
     // Maneja la respuesta a la solicitud de permisos
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
@@ -91,10 +99,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 getCurrentLocation();
             } else {
-                Toast.makeText(this, "Location permission denied", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Permiso de ubicación denegado", Toast.LENGTH_SHORT).show();
             }
         }
     }
+    public GoogleMap getMap() {
+        return mMap;
+    }
+    // Métodos de ciclo de vida para el MapView
     @Override
     protected void onResume() {
         super.onResume();
